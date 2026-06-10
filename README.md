@@ -13,7 +13,7 @@
 
 <br/><br/>
 
-### An autonomous AI agent that manages GitHub repositories through a full **Think → Act → Observe** loop —
+### An autonomous AI agent that manages GitHub repositories through a full **Think → Act → Observe** loop -
 ### with live streaming, dual memory, and 25+ tools across code execution, web search, and the full GitHub API.
 
 <br/>
@@ -38,10 +38,10 @@ Agent →  [thinks]  I need to list PRs, then get each diff, then post a comment
       →  [tool]    get_pr_diff("Darsh-Nandu/my-repo", 12)
       →  [tool]    add_issue_comment("Darsh-Nandu/my-repo", 12, "Summary: ...")
       →  [tool]    get_pr_diff("Darsh-Nandu/my-repo", 13)  ...and so on
-      →  "Done — added summaries to PR #12 and #13."
+      →  "Done - added summaries to PR #12 and #13."
 ```
 
-It remembers your name, your preferred coding style, and your project context — across sessions.
+It remembers your name, your preferred coding style, and your project context - across sessions.
 
 ---
 
@@ -86,7 +86,7 @@ It remembers your name, your preferred coding style, and your project context �
   └─────────────┘    └───────────────────┘
 ```
 
-The **FastMCP server** and **FastAPI backend** run as separate processes — MCP tools execute in isolation, keeping the agent backend clean.
+The **FastMCP server** and **FastAPI backend** run as separate processes - MCP tools execute in isolation, keeping the agent backend clean.
 
 ---
 
@@ -96,30 +96,25 @@ The **FastMCP server** and **FastAPI backend** run as separate processes — MCP
 - Python 3.10+
 - A [Groq](https://console.groq.com/) API key *(free tier available)*
 - A GitHub [Personal Access Token](https://github.com/settings/tokens) with `repo` + `workflow` scopes
-- *(Optional)* OpenAI API key — enables semantic search in Mem0
+- *(Optional)* OpenAI API key - enables semantic search in Mem0
 
 ### 1. Clone & Install
 
 ```bash
 git clone https://github.com/Darsh-Nandu/React-Github-Agent.git
 cd React-Github-Agent
+
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
 pip install -r requirements.txt
 ```
 
 ### 2. Configure Environment
 
-Create a `.env` file in the root:
-
-```env
-# Required
-GROQ_API_KEY=your_groq_api_key
-GITHUB_TOKEN=your_github_personal_access_token
-
-# Optional — enables semantic memory search in Mem0
-OPENAI_API_KEY=your_openai_api_key
-
-# Optional — defaults to http://localhost:8001/sse
-MCP_SERVER_URL=http://localhost:8001/sse
+```bash
+cp .env.example .env
+# Edit .env and fill in GROQ_API_KEY and GITHUB_TOKEN
 ```
 
 ### 3. Start the MCP Tool Server
@@ -154,7 +149,7 @@ Navigate to **[http://localhost:8000](http://localhost:8000)**
 
 ## Tools
 
-### 🐙 GitHub Tools — 15 tools via PyGithub
+### 🐙 GitHub Tools - 15 tools via PyGithub
 
 | Tool | Description |
 |:---|:---|
@@ -170,7 +165,7 @@ Navigate to **[http://localhost:8000](http://localhost:8000)**
 | `list_pull_requests` / `create_pull_request` | Full PR lifecycle |
 | `get_pr_diff` | Get the full diff of any pull request |
 
-### ⚙️ MCP Tools — 10 tools via FastMCP
+### ⚙️ MCP Tools - 10 tools via FastMCP
 
 | Tool | Description |
 |:---|:---|
@@ -217,8 +212,8 @@ User Message
 
 | Method | Endpoint | Description |
 |:---|:---|:---|
-| `POST` | `/chat` | Single-turn — waits for full response |
-| `POST` | `/chat/stream` | Streaming — SSE token-by-token |
+| `POST` | `/chat` | Single-turn - waits for full response |
+| `POST` | `/chat/stream` | Streaming - SSE token-by-token |
 | `GET` | `/memories` | Fetch all long-term memories for a user |
 | `DELETE` | `/memories` | Wipe all memories for a user |
 | `GET` | `/health` | Health check + agent readiness |
@@ -235,15 +230,32 @@ User Message
 
 ---
 
+## Testing
+
+```bash
+# Install dev dependencies
+pip install -r requirements-dev.txt
+
+# Run all tests (no API keys required - everything is mocked)
+pytest
+
+# With coverage report
+pytest --cov=agent --cov=github_tools --cov=mcp_server --cov-report=term-missing
+```
+
+The suite covers GitHub tools, memory operations, all API endpoints, and the agent graph - 68 tests, no network calls.
+
+---
+
 ## Project Structure
 
 ```
 React-Github-Agent/
 │
-├── main.py                    # FastAPI app — routes, lifespan, streaming
+├── main.py                    # FastAPI app - routes, lifespan, streaming
 │
 ├── agent/
-│   ├── graph.py               # LangGraph ReAct agent + memory loop
+│   ├── graph.py               # LangGraph ReAct agent + async memory loop
 │   ├── memory.py              # MemorySaver (short-term) + Mem0 (long-term)
 │   └── state.py               # AgentState TypedDict
 │
@@ -251,12 +263,28 @@ React-Github-Agent/
 │   └── github_toolkit.py      # 15 GitHub tools via PyGithub
 │
 ├── mcp_server/
-│   └── server.py              # FastMCP server — 10 utility tools
+│   └── server.py              # FastMCP server - 10 utility tools
 │
 ├── static/
-│   └── index.html             # Dark terminal UI
+│   └── index.html             # Dark terminal UI with SSE streaming
 │
-└── requirements.txt
+├── tests/
+│   ├── conftest.py            # Shared fixtures
+│   ├── test_github_toolkit.py # GitHub tool unit tests (mocked API)
+│   ├── test_memory.py         # Memory module tests (mocked Mem0)
+│   ├── test_api.py            # FastAPI endpoint tests
+│   └── test_agent_graph.py    # Agent graph + streaming tests
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml             # CI: test matrix (3.10–3.12), lint, security
+│
+├── .env.example               # Template for environment variables
+├── pyproject.toml             # Project metadata + tool config
+├── requirements.txt           # Runtime dependencies
+├── requirements-dev.txt       # Dev + test dependencies
+├── CONTRIBUTING.md            # How to contribute
+└── LICENSE                    # MIT
 ```
 
 ---
@@ -265,16 +293,20 @@ React-Github-Agent/
 
 ```
 ✅ LangGraph ReAct loop with streaming
-✅ 25 tools — GitHub + MCP
+✅ 25 tools - GitHub + MCP
 ✅ Dual memory (MemorySaver + Mem0)
 ✅ FastAPI backend with SSE streaming
 ✅ Dark terminal UI
-⬜ SqliteSaver for short-term memory persistence
+✅ Test suite (68 tests, fully mocked)
+✅ CI pipeline (test matrix, lint, security scan)
+✅ MIT License, .env.example, CONTRIBUTING guide
+⬜ SqliteSaver for short-term memory persistence across restarts
 ⬜ Real auth / per-user sessions (JWT)
 ⬜ Streaming Markdown + syntax highlighting in UI
 ⬜ Collapsible Think/Act/Observe traces in UI
 ⬜ Repo-specific system prompt injection
 ⬜ Memory decay + deduplication
+⬜ Docker Compose for one-command startup
 ```
 
 ---

@@ -6,6 +6,7 @@ Builds the LangGraph ReAct agent:
   2. Runs the ReAct Think→Act→Observe loop
   3. After each turn, extracts facts and saves to long-term memory
 """
+import asyncio
 import os
 from typing import AsyncIterator
 
@@ -142,9 +143,8 @@ async def run_agent(
         else str(final_message.content)
     )
 
-    # 5. Save important facts to long-term memory
-    #    We ask the LLM to extract a concise fact if the conversation warrants it.
-    _maybe_save_memory(user_id=user_id, user_msg=user_message, agent_msg=response_text)
+    # 5. Save important facts to long-term memory (non-blocking)
+    asyncio.create_task(_maybe_save_memory(user_id=user_id, user_msg=user_message, agent_msg=response_text))
 
     return response_text
 
@@ -196,27 +196,34 @@ async def stream_agent(
             tool_name = event.get("name", "tool")
             yield f"✅ *`{tool_name}` done*\n\n"
 
-    # Save memory after streaming completes
+    # Save memory after streaming completes (fire-and-forget, non-blocking)
     if full_response:
-        _maybe_save_memory(
+        asyncio.create_task(_maybe_save_memory(
             user_id=user_id,
             user_msg=user_message,
             agent_msg="".join(full_response),
-        )
+        ))
 
 
-def _maybe_save_memory(user_id: str, user_msg: str, agent_msg: str) -> None:
+async def _maybe_save_memory(user_id: str, user_msg: str, agent_msg: str) -> None:
     """
-    Heuristic: save a memory if the exchange contains something worth remembering.
-    In production, replace this with an LLM call to extract facts.
+    Extract a memorable fact from the exchange and persist it.
+    Runs as a fire-and-forget asyncio Task so it never blocks response streaming.
     """
-    
-    memory_text = memory_llm.invoke([
-        SystemMessage(content="You are an assistant that extracts important facts from conversations to remember for the future. Only return the facts to be remembered!"),
-        HumanMessage(content=f"User said: {user_msg}"),
-        AIMessage(content=f"Assistant said: {agent_msg}"),
-        HumanMessage(content="What is one concise fact from this exchange that would be useful to remember for future interactions with this user? If nothing important, say 'None'."),
-    ]).content
-    print(f"[memory] Extracted memory: {memory_text}")
-    if memory_text and memory_text.strip().lower() != "none":
-        save_memory(user_id=user_id, content=memory_text)
+    loop = asyncio.get_event_loop()
+    # Run the blocking LLM call in a thread-pool so we don't stall the event loop
+    def _invoke():
+        return memory_llm.invoke([
+            SystemMessage(content="You are an assistant that extracts important facts from conversations to remember for the future. Only return the facts to be remembered!"),
+            HumanMessage(content=f"User said: {user_msg}"),
+            AIMessage(content=f"Assistant said: {agent_msg}"),
+            HumanMessage(content="What is one concise fact from this exchange that would be useful to remember for future interactions with this user? If nothing important, say 'None'."),
+        ]).content
+
+    try:
+        memory_text = await loop.run_in_executor(None, _invoke)
+        print(f"[memory] Extracted memory: {memory_text}")
+        if memory_text and memory_text.strip().lower() != "none":
+            save_memory(user_id=user_id, content=memory_text)
+    except Exception as e:
+        print(f"[memory] _maybe_save_memory failed: {e}")

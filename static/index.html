@@ -302,6 +302,17 @@
     color: var(--text);
   }
 
+  /* Markdown elements rendered inside bubbles */
+  .msg-bubble h2 { font-size: 1.05em; font-weight: 700; color: var(--accent2); margin: 12px 0 4px; }
+  .msg-bubble h3 { font-size: 1em;    font-weight: 600; color: var(--accent2); margin: 10px 0 4px; }
+  .msg-bubble h4 { font-size: 0.95em; font-weight: 600; color: var(--text);    margin: 8px 0 4px; }
+  .msg-bubble ul { list-style: none; padding: 0; margin: 6px 0; }
+  .msg-bubble ul li::before { content: '▸ '; color: var(--accent); }
+  .msg-bubble ul li { margin: 2px 0; }
+  .msg-bubble hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+  .msg-bubble strong { color: var(--text); }
+  .msg-bubble em { color: var(--text2); font-style: italic; }
+
   /* Cursor blink during streaming */
   .cursor::after {
     content: '▋';
@@ -536,13 +547,48 @@ function renderMsg(role, content) {
 }
 
 function formatContent(text) {
-  // Simple markdown: code blocks, inline code, bold
-  return escHtml(text)
-    .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/⚙️ \*Using tool: `(.*?)`\*/g, '<span class="tool-line">⚙ running $1…</span>')
-    .replace(/✅ \*`(.*?)` done\*/g, '<span class="tool-line tool-done">✓ $1</span>');
+  // 1. Escape HTML first
+  let s = escHtml(text);
+
+  // 2. Tool notification lines (before other processing)
+  s = s.replace(/⚙️ \*Using tool: `(.*?)`\*/g, '<span class="tool-line">⚙ running $1…</span>');
+  s = s.replace(/✅ \*`(.*?)` done\*/g, '<span class="tool-line tool-done">✓ $1</span>');
+
+  // 3. Fenced code blocks (must come before inline code)
+  s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+    const cls = lang ? ` class="language-${lang}"` : '';
+    return `<pre><code${cls}>${code.trimEnd()}</code></pre>`;
+  });
+
+  // 4. Inline code
+  s = s.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+
+  // 5. Bold and italic
+  s = s.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+  // 6. Headings (##, ###)
+  s = s.replace(/^### (.+)$/gm, '<h4>$1</h4>');
+  s = s.replace(/^## (.+)$/gm, '<h3>$1</h3>');
+  s = s.replace(/^# (.+)$/gm, '<h2>$1</h2>');
+
+  // 7. Unordered lists (lines starting with - or •)
+  s = s.replace(/^[-•] (.+)$/gm, '<li>$1</li>');
+  s = s.replace(/(<li>.*<\/li>(\n|$))+/g, m => `<ul>${m}</ul>`);
+
+  // 8. Numbered lists
+  s = s.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+
+  // 9. Horizontal rules
+  s = s.replace(/^---+$/gm, '<hr>');
+
+  // 10. Newlines → <br> (but not inside <pre> blocks — those are already formatted)
+  // Split on pre blocks, add <br> only to non-code sections
+  const parts = s.split(/(<pre>[\s\S]*?<\/pre>)/g);
+  s = parts.map((p, i) => i % 2 === 1 ? p : p.replace(/\n/g, '<br>')).join('');
+
+  return s;
 }
 
 function escHtml(s) {
@@ -598,26 +644,28 @@ async function sendMessage() {
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
 
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
+      // SSE messages are separated by double newlines
+      const rawMessages = buffer.split('\n\n');
+      buffer = rawMessages.pop(); // keep incomplete trailing chunk
 
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '') continue;
+      for (const msg of rawMessages) {
+        if (!msg.trim()) continue;
 
-          // Parse SSE events
-          const eventLine = lines.find(l => l.startsWith('event: '));
-          const event = eventLine ? eventLine.slice(7) : 'token';
-
-          if (data === '[DONE]' || data === '') continue;
-
-          try {
-            assistantMsg.content += data;
-            activeBubble.innerHTML = formatContent(assistantMsg.content);
-            scrollToBottom();
-          } catch {}
+        // Parse event type and data from the SSE message block
+        let eventType = 'token';
+        let eventData = '';
+        for (const line of msg.split('\n')) {
+          if (line.startsWith('event: ')) eventType = line.slice(7).trim();
+          else if (line.startsWith('data: ')) eventData = line.slice(6);
         }
+
+        if (eventType === 'done' || !eventData) continue;
+
+        try {
+          assistantMsg.content += eventData;
+          activeBubble.innerHTML = formatContent(assistantMsg.content);
+          scrollToBottom();
+        } catch {}
       }
     }
   } catch (e) {
