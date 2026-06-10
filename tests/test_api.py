@@ -4,6 +4,7 @@ tests/test_api.py
 Integration tests for main.py FastAPI endpoints.
 The agent and memory functions are mocked — no LLM calls made.
 """
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi.testclient import TestClient
@@ -27,6 +28,7 @@ def client(mock_agent_build):
         app_module._agent = mock_agent_build  # inject directly
 
         from fastapi.testclient import TestClient
+
         # Use the app without lifespan to avoid actual agent build
         with TestClient(app_module.app, raise_server_exceptions=True) as c:
             app_module._agent = mock_agent_build
@@ -34,6 +36,7 @@ def client(mock_agent_build):
 
 
 # /health
+
 
 class TestHealth:
     def test_health_ok(self, client):
@@ -48,6 +51,7 @@ class TestHealth:
 
 
 # /chat
+
 
 class TestChat:
     def test_chat_returns_response(self, client):
@@ -78,6 +82,7 @@ class TestChat:
 
     def test_chat_503_when_agent_not_ready(self, client):
         import main as app_module
+
         original = app_module._agent
         app_module._agent = None
 
@@ -112,6 +117,7 @@ class TestChat:
 
 
 # /memories
+
 
 class TestMemories:
     def test_get_memories(self, client):
@@ -150,6 +156,7 @@ class TestMemories:
 
 # (static UI)
 
+
 class TestServeUI:
     def test_serves_index_html_when_exists(self, client, tmp_path, monkeypatch):
         import main as app_module
@@ -167,6 +174,7 @@ class TestServeUI:
 
 
 # Request Model Validation
+
 
 class TestChatRequestValidation:
     def test_message_required(self, client):

@@ -6,6 +6,7 @@ Builds the LangGraph ReAct agent:
   2. Runs the ReAct Think→Act→Observe loop
   3. After each turn, extracts facts and saves to long-term memory
 """
+
 import asyncio
 import os
 from typing import AsyncIterator
@@ -47,9 +48,10 @@ BASE_SYSTEM_PROMPT = """You are a powerful AI assistant with access to:
 NOTE:Be helpful, be safe, and always explain your reasoning and do not tell the client that this memory was retrieved from here, this memory was saved here etc!
 """
 memory_llm = ChatGroq(
-        model="llama-3.3-70b-versatile",
-        temperature=0,
-    )
+    model="llama-3.3-70b-versatile",
+    temperature=0,
+)
+
 
 def build_system_prompt(memories: list[str]) -> str:
     if not memories:
@@ -71,12 +73,14 @@ async def build_agent(mcp_url: str | None = None):
 
     # Connect to FastMCP server and fetch tools
     try:
-        client = MultiServerMCPClient({
-            "agent-tools": {
-                "url": url,
-                "transport": "sse",
+        client = MultiServerMCPClient(
+            {
+                "agent-tools": {
+                    "url": url,
+                    "transport": "sse",
+                }
             }
-        })
+        )
         mcp_tools = await client.get_tools()
         print(f"[agent] Loaded {len(mcp_tools)} tools from MCP server")
     except Exception as e:
@@ -104,6 +108,7 @@ async def build_agent(mcp_url: str | None = None):
     )
 
     return agent
+
 
 # Run Helpers
 async def run_agent(
@@ -144,7 +149,11 @@ async def run_agent(
     )
 
     # 5. Save important facts to long-term memory (non-blocking)
-    asyncio.create_task(_maybe_save_memory(user_id=user_id, user_msg=user_message, agent_msg=response_text))
+    asyncio.create_task(
+        _maybe_save_memory(
+            user_id=user_id, user_msg=user_message, agent_msg=response_text
+        )
+    )
 
     return response_text
 
@@ -198,11 +207,13 @@ async def stream_agent(
 
     # Save memory after streaming completes (fire-and-forget, non-blocking)
     if full_response:
-        asyncio.create_task(_maybe_save_memory(
-            user_id=user_id,
-            user_msg=user_message,
-            agent_msg="".join(full_response),
-        ))
+        asyncio.create_task(
+            _maybe_save_memory(
+                user_id=user_id,
+                user_msg=user_message,
+                agent_msg="".join(full_response),
+            )
+        )
 
 
 async def _maybe_save_memory(user_id: str, user_msg: str, agent_msg: str) -> None:
@@ -211,14 +222,21 @@ async def _maybe_save_memory(user_id: str, user_msg: str, agent_msg: str) -> Non
     Runs as a fire-and-forget asyncio Task so it never blocks response streaming.
     """
     loop = asyncio.get_event_loop()
+
     # Run the blocking LLM call in a thread-pool so we don't stall the event loop
     def _invoke():
-        return memory_llm.invoke([
-            SystemMessage(content="You are an assistant that extracts important facts from conversations to remember for the future. Only return the facts to be remembered!"),
-            HumanMessage(content=f"User said: {user_msg}"),
-            AIMessage(content=f"Assistant said: {agent_msg}"),
-            HumanMessage(content="What is one concise fact from this exchange that would be useful to remember for future interactions with this user? If nothing important, say 'None'."),
-        ]).content
+        return memory_llm.invoke(
+            [
+                SystemMessage(
+                    content="You are an assistant that extracts important facts from conversations to remember for the future. Only return the facts to be remembered!"
+                ),
+                HumanMessage(content=f"User said: {user_msg}"),
+                AIMessage(content=f"Assistant said: {agent_msg}"),
+                HumanMessage(
+                    content="What is one concise fact from this exchange that would be useful to remember for future interactions with this user? If nothing important, say 'None'."
+                ),
+            ]
+        ).content
 
     try:
         memory_text = await loop.run_in_executor(None, _invoke)

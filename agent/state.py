@@ -2,6 +2,7 @@
 agent/state.py
 Defines the shape of state that flows through the LangGraph ReAct graph.
 """
+
 from typing import Annotated, Any
 from langgraph.graph.message import add_messages
 from typing_extensions import TypedDict

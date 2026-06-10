@@ -8,10 +8,11 @@ Upgrade path:
   - Replace MemorySaver with SqliteSaver or RedisSaver for persistence
   - Mem0 auto-upgrades to vector store if OPENAI_API_KEY is set
 """
+
 import os
 from langgraph.checkpoint.memory import MemorySaver
 
-# Short-term memory 
+# Short-term memory
 short_term_memory = MemorySaver()
 
 
@@ -26,7 +27,10 @@ try:
     if os.getenv("OPENAI_API_KEY"):
         _mem0_config = {
             "llm": {"provider": "openai", "config": {"model": "gpt-4o-mini"}},
-            "embedder": {"provider": "openai", "config": {"model": "text-embedding-3-small"}},
+            "embedder": {
+                "provider": "openai",
+                "config": {"model": "text-embedding-3-small"},
+            },
         }
 
     _mem0 = Mem0Memory.from_config(_mem0_config) if _mem0_config else Mem0Memory()

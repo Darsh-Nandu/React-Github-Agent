@@ -4,13 +4,17 @@ tests/test_github_toolkit.py
 Unit tests for github_tools/github_toolkit.py.
 All GitHub API calls are mocked — no network required.
 """
+
 import pytest
 from unittest.mock import MagicMock, patch, PropertyMock
 
 
 # Helpers
 
-def _make_repo(full_name="owner/repo", description="A test repo", default_branch="main"):
+
+def _make_repo(
+    full_name="owner/repo", description="A test repo", default_branch="main"
+):
     repo = MagicMock()
     repo.full_name = full_name
     repo.description = description
@@ -20,6 +24,7 @@ def _make_repo(full_name="owner/repo", description="A test repo", default_branch
 
 def _make_content(path="README.md", content_b64=None, size=42, type_="file"):
     import base64
+
     obj = MagicMock()
     obj.path = path
     obj.size = size
@@ -30,6 +35,7 @@ def _make_content(path="README.md", content_b64=None, size=42, type_="file"):
 
 
 # list_repos
+
 
 class TestListRepos:
     def test_returns_repo_names(self):
@@ -81,6 +87,7 @@ class TestListRepos:
 
 # read_github_file
 
+
 class TestReadGithubFile:
     def test_reads_file_content(self):
         import base64
@@ -96,7 +103,9 @@ class TestReadGithubFile:
             g.get_repo.return_value = repo
             mock_client.return_value = g
 
-            result = read_github_file.invoke({"repo": "owner/repo", "path": "src/main.py", "branch": "main"})
+            result = read_github_file.invoke(
+                {"repo": "owner/repo", "path": "src/main.py", "branch": "main"}
+            )
 
         assert "print('hello')" in result
 
@@ -111,7 +120,9 @@ class TestReadGithubFile:
             g.get_repo.return_value = repo
             mock_client.return_value = g
 
-            result = read_github_file.invoke({"repo": "owner/repo", "path": "src", "branch": "main"})
+            result = read_github_file.invoke(
+                {"repo": "owner/repo", "path": "src", "branch": "main"}
+            )
 
         assert "Error" in result
         assert "directory" in result
@@ -123,16 +134,21 @@ class TestReadGithubFile:
         with patch("github_tools.github_toolkit._get_client") as mock_client:
             g = MagicMock()
             repo = MagicMock()
-            repo.get_contents.side_effect = GithubException(404, {"message": "Not Found"}, None)
+            repo.get_contents.side_effect = GithubException(
+                404, {"message": "Not Found"}, None
+            )
             g.get_repo.return_value = repo
             mock_client.return_value = g
 
-            result = read_github_file.invoke({"repo": "owner/repo", "path": "missing.py", "branch": "main"})
+            result = read_github_file.invoke(
+                {"repo": "owner/repo", "path": "missing.py", "branch": "main"}
+            )
 
         assert "Error" in result or "Not Found" in result
 
 
 # write_github_file
+
 
 class TestWriteGithubFile:
     def test_creates_new_file(self):
@@ -142,21 +158,28 @@ class TestWriteGithubFile:
             g = MagicMock()
             repo = MagicMock()
             from github import GithubException
+
             repo.get_contents.side_effect = GithubException(404, {}, None)
             commit_result = {"commit": MagicMock(sha="deadbeef")}
             repo.create_file.return_value = commit_result
             g.get_repo.return_value = repo
             mock_client.return_value = g
 
-            result = write_github_file.invoke({
-                "repo": "owner/repo",
-                "path": "new_file.py",
-                "content": "x = 1",
-                "commit_message": "Add new_file.py",
-                "branch": "main",
-            })
+            result = write_github_file.invoke(
+                {
+                    "repo": "owner/repo",
+                    "path": "new_file.py",
+                    "content": "x = 1",
+                    "commit_message": "Add new_file.py",
+                    "branch": "main",
+                }
+            )
 
-        assert "deadbeef" in result or "created" in result.lower() or "new_file.py" in result
+        assert (
+            "deadbeef" in result
+            or "created" in result.lower()
+            or "new_file.py" in result
+        )
 
     def test_updates_existing_file(self):
         from github_tools.github_toolkit import write_github_file
@@ -171,18 +194,25 @@ class TestWriteGithubFile:
             g.get_repo.return_value = repo
             mock_client.return_value = g
 
-            result = write_github_file.invoke({
-                "repo": "owner/repo",
-                "path": "existing.py",
-                "content": "x = 2",
-                "commit_message": "Update existing.py",
-                "branch": "main",
-            })
+            result = write_github_file.invoke(
+                {
+                    "repo": "owner/repo",
+                    "path": "existing.py",
+                    "content": "x = 2",
+                    "commit_message": "Update existing.py",
+                    "branch": "main",
+                }
+            )
 
-        assert "cafebabe" in result or "updated" in result.lower() or "existing.py" in result
+        assert (
+            "cafebabe" in result
+            or "updated" in result.lower()
+            or "existing.py" in result
+        )
 
 
-#get_file_tree
+# get_file_tree
+
 
 class TestGetFileTree:
     def test_lists_files_and_dirs(self):
@@ -202,7 +232,9 @@ class TestGetFileTree:
             g.get_repo.return_value = repo
             mock_client.return_value = g
 
-            result = get_file_tree.invoke({"repo": "owner/repo", "path": "", "branch": "main"})
+            result = get_file_tree.invoke(
+                {"repo": "owner/repo", "path": "", "branch": "main"}
+            )
 
         assert "README.md" in result
         assert "src" in result
@@ -217,12 +249,15 @@ class TestGetFileTree:
             g.get_repo.return_value = repo
             mock_client.return_value = g
 
-            result = get_file_tree.invoke({"repo": "owner/repo", "path": "empty/", "branch": "main"})
+            result = get_file_tree.invoke(
+                {"repo": "owner/repo", "path": "empty/", "branch": "main"}
+            )
 
         assert "Empty" in result or result == ""
 
 
 # create_branch
+
 
 class TestCreateBranch:
     def test_creates_branch_from_main(self):
@@ -237,11 +272,13 @@ class TestCreateBranch:
             g.get_repo.return_value = repo
             mock_client.return_value = g
 
-            result = create_branch.invoke({
-                "repo": "owner/repo",
-                "branch_name": "feature/new",
-                "from_branch": "main",
-            })
+            result = create_branch.invoke(
+                {
+                    "repo": "owner/repo",
+                    "branch_name": "feature/new",
+                    "from_branch": "main",
+                }
+            )
 
         repo.create_git_ref.assert_called_once()
         assert "feature/new" in result or "created" in result.lower()
@@ -256,20 +293,25 @@ class TestCreateBranch:
             source_ref = MagicMock()
             source_ref.object.sha = "sha123"
             repo.get_git_ref.return_value = source_ref
-            repo.create_git_ref.side_effect = GithubException(422, {"message": "Reference already exists"}, None)
+            repo.create_git_ref.side_effect = GithubException(
+                422, {"message": "Reference already exists"}, None
+            )
             g.get_repo.return_value = repo
             mock_client.return_value = g
 
-            result = create_branch.invoke({
-                "repo": "owner/repo",
-                "branch_name": "feature/existing",
-                "from_branch": "main",
-            })
+            result = create_branch.invoke(
+                {
+                    "repo": "owner/repo",
+                    "branch_name": "feature/existing",
+                    "from_branch": "main",
+                }
+            )
 
         assert "Error" in result or "already exists" in result.lower()
 
 
 # create_issue
+
 
 class TestCreateIssue:
     def test_creates_issue(self):
@@ -285,17 +327,20 @@ class TestCreateIssue:
             g.get_repo.return_value = repo
             mock_client.return_value = g
 
-            result = create_issue.invoke({
-                "repo": "owner/repo",
-                "title": "Bug: something broken",
-                "body": "Details here",
-            })
+            result = create_issue.invoke(
+                {
+                    "repo": "owner/repo",
+                    "title": "Bug: something broken",
+                    "body": "Details here",
+                }
+            )
 
         assert "42" in result
         assert "github.com" in result
 
 
 # create_pull_request
+
 
 class TestCreatePullRequest:
     def test_creates_pr(self):
@@ -311,13 +356,15 @@ class TestCreatePullRequest:
             g.get_repo.return_value = repo
             mock_client.return_value = g
 
-            result = create_pull_request.invoke({
-                "repo": "owner/repo",
-                "title": "Feature: add login",
-                "body": "Adds login page",
-                "head": "feature/login",
-                "base": "main",
-            })
+            result = create_pull_request.invoke(
+                {
+                    "repo": "owner/repo",
+                    "title": "Feature: add login",
+                    "body": "Adds login page",
+                    "head": "feature/login",
+                    "base": "main",
+                }
+            )
 
         assert "7" in result
         assert "github.com" in result
@@ -325,11 +372,14 @@ class TestCreatePullRequest:
 
 # _get_client
 
+
 class TestGetClient:
     def test_raises_without_token(self, monkeypatch):
         import importlib
+
         monkeypatch.delenv("GITHUB_TOKEN", raising=False)
         from github_tools import github_toolkit
+
         importlib.reload(github_toolkit)
 
         with pytest.raises(ValueError, match="GITHUB_TOKEN"):
@@ -338,6 +388,7 @@ class TestGetClient:
     def test_returns_client_with_token(self, monkeypatch):
         monkeypatch.setenv("GITHUB_TOKEN", "ghp_testtoken")
         from github_tools.github_toolkit import _get_client
+
         with patch("github_tools.github_toolkit.Github") as MockGithub:
             MockGithub.return_value = MagicMock()
             client = _get_client()

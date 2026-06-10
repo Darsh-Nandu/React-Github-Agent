@@ -4,12 +4,14 @@ tests/test_memory.py
 Unit tests for agent/memory.py.
 Mem0 is mocked so no external services are needed.
 """
+
 import os
 import pytest
 from unittest.mock import MagicMock, patch
 
 
 # save_memory (fallback text file)
+
 
 class TestSaveMemoryFallback:
     def test_writes_to_txt_when_mem0_unavailable(self, tmp_path, monkeypatch):
@@ -19,6 +21,7 @@ class TestSaveMemoryFallback:
         # Re-import with MEM0_AVAILABLE = False
         import importlib
         import agent.memory as mem_mod
+
         original_available = mem_mod.MEM0_AVAILABLE
         original_mem0 = mem_mod._mem0
 
@@ -40,6 +43,7 @@ class TestSaveMemoryFallback:
 
     def test_does_nothing_when_mem0_unavailable_and_no_path_override(self):
         import agent.memory as mem_mod
+
         original_available = mem_mod.MEM0_AVAILABLE
         original_mem0 = mem_mod._mem0
 
@@ -58,9 +62,11 @@ class TestSaveMemoryFallback:
 
 # save_memory (with Mem0)
 
+
 class TestSaveMemoryWithMem0:
     def test_calls_mem0_add(self):
         import agent.memory as mem_mod
+
         original_available = mem_mod.MEM0_AVAILABLE
         original_mem0 = mem_mod._mem0
 
@@ -77,6 +83,7 @@ class TestSaveMemoryWithMem0:
 
     def test_handles_mem0_exception_gracefully(self):
         import agent.memory as mem_mod
+
         original_available = mem_mod.MEM0_AVAILABLE
         original_mem0 = mem_mod._mem0
 
@@ -94,9 +101,11 @@ class TestSaveMemoryWithMem0:
 
 # recall_memories
 
+
 class TestRecallMemories:
     def test_returns_empty_when_mem0_unavailable(self):
         import agent.memory as mem_mod
+
         original_available = mem_mod.MEM0_AVAILABLE
         original_mem0 = mem_mod._mem0
 
@@ -111,6 +120,7 @@ class TestRecallMemories:
 
     def test_returns_memory_strings(self):
         import agent.memory as mem_mod
+
         original_available = mem_mod.MEM0_AVAILABLE
         original_mem0 = mem_mod._mem0
 
@@ -132,6 +142,7 @@ class TestRecallMemories:
 
     def test_handles_search_exception(self):
         import agent.memory as mem_mod
+
         original_available = mem_mod.MEM0_AVAILABLE
         original_mem0 = mem_mod._mem0
 
@@ -149,9 +160,11 @@ class TestRecallMemories:
 
 # get_all_memories
 
+
 class TestGetAllMemories:
     def test_returns_all_for_user(self):
         import agent.memory as mem_mod
+
         original_available = mem_mod.MEM0_AVAILABLE
         original_mem0 = mem_mod._mem0
 
@@ -171,6 +184,7 @@ class TestGetAllMemories:
 
     def test_returns_empty_when_unavailable(self):
         import agent.memory as mem_mod
+
         original_available = mem_mod.MEM0_AVAILABLE
         original_mem0 = mem_mod._mem0
 
@@ -186,9 +200,11 @@ class TestGetAllMemories:
 
 # delete_memories
 
+
 class TestDeleteMemories:
     def test_calls_delete_all(self):
         import agent.memory as mem_mod
+
         original_available = mem_mod.MEM0_AVAILABLE
         original_mem0 = mem_mod._mem0
 
@@ -204,6 +220,7 @@ class TestDeleteMemories:
 
     def test_noop_when_unavailable(self):
         import agent.memory as mem_mod
+
         original_available = mem_mod.MEM0_AVAILABLE
         original_mem0 = mem_mod._mem0
 

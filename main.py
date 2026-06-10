@@ -11,6 +11,7 @@ Endpoints:
   GET  /health        → health check
   GET  /              → serve the UI (index.html)
 """
+
 import os
 import uuid
 import asyncio
@@ -56,10 +57,11 @@ app.add_middleware(
 
 # Request and Response Models
 
+
 class ChatRequest(BaseModel):
     message: str
-    session_id: str | None = None   # optional; auto-generated if not provided
-    user_id: str = "default-user"   # in production, extract from JWT / session
+    session_id: str | None = None  # optional; auto-generated if not provided
+    user_id: str = "default-user"  # in production, extract from JWT / session
 
 
 class ChatResponse(BaseModel):
@@ -73,6 +75,7 @@ class MemoriesResponse(BaseModel):
 
 
 # Routes
+
 
 @app.get("/health")
 async def health():
@@ -151,4 +154,5 @@ async def serve_ui():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

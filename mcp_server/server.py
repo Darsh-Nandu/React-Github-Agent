@@ -7,6 +7,7 @@ Run this SEPARATELY from the main FastAPI app:
 
 The agent connects to it via SSE at http://localhost:8001/sse
 """
+
 import sys
 import subprocess
 import tempfile
@@ -68,6 +69,7 @@ def format_python_code(code: str) -> str:
     """
     try:
         import black
+
         formatted = black.format_str(code, mode=black.Mode())
         return formatted
     except ImportError:
@@ -90,8 +92,14 @@ def lint_python_code(code: str) -> str:
 
     try:
         result = subprocess.run(
-            [sys.executable, "-m", "pylint", fname, "--output-format=text",
-             "--disable=C0114,C0115,C0116"],  # suppress docstring warnings
+            [
+                sys.executable,
+                "-m",
+                "pylint",
+                fname,
+                "--output-format=text",
+                "--disable=C0114,C0115,C0116",
+            ],  # suppress docstring warnings
             capture_output=True,
             text=True,
         )
@@ -125,6 +133,7 @@ def fetch_url(url: str, max_chars: int = 5000) -> str:
 
             if "html" in content_type:
                 from bs4 import BeautifulSoup
+
                 soup = BeautifulSoup(response.text, "html.parser")
                 # Remove script/style tags
                 for tag in soup(["script", "style", "nav", "footer", "header"]):
@@ -272,6 +281,7 @@ def parse_json(json_string: str) -> str:
         json_string: Raw JSON string to parse and format
     """
     import json
+
     try:
         parsed = json.loads(json_string)
         return json.dumps(parsed, indent=2, ensure_ascii=False)
@@ -289,6 +299,7 @@ def diff_strings(text_a: str, text_b: str) -> str:
         text_b: New text
     """
     import difflib
+
     diff = difflib.unified_diff(
         text_a.splitlines(keepends=True),
         text_b.splitlines(keepends=True),
@@ -297,6 +308,7 @@ def diff_strings(text_a: str, text_b: str) -> str:
     )
     result = "".join(diff)
     return result if result else "No differences found."
+
 
 # Entry Point
 if __name__ == "__main__":

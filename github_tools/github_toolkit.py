@@ -21,6 +21,7 @@ Tools exposed:
   - list_commits         → list recent commits on a branch
   - get_file_tree        → list all files in a repo/directory
 """
+
 import os
 import base64
 from typing import Optional
@@ -36,7 +37,7 @@ def _get_client() -> Github:
     return Github(token)
 
 
-# Repository 
+# Repository
 @tool
 def list_repos(visibility: str = "all") -> str:
     """
@@ -214,7 +215,7 @@ def list_commits(repo: str, branch: str = "main", limit: int = 10) -> str:
         return f"Error: {e.data.get('message', str(e))}"
 
 
-# Search 
+# Search
 @tool
 def search_code(query: str, repo: Optional[str] = None) -> str:
     """
@@ -239,7 +240,7 @@ def search_code(query: str, repo: Optional[str] = None) -> str:
         return f"Error searching: {e.data.get('message', str(e))}"
 
 
-# Issues 
+# Issues
 @tool
 def list_issues(repo: str, state: str = "open", limit: int = 20) -> str:
     """
@@ -333,7 +334,7 @@ def close_issue(repo: str, issue_number: int, comment: Optional[str] = None) -> 
         return f"Error closing issue: {e.data.get('message', str(e))}"
 
 
-# Pull Requests 
+# Pull Requests
 @tool
 def list_pull_requests(repo: str, state: str = "open") -> str:
     """
@@ -410,6 +411,7 @@ def get_pr_diff(repo: str, pr_number: int) -> str:
 
 
 # Tool List for Agent Binding
+
 
 def get_github_tools():
     """Return all GitHub tools as a flat list for binding to the agent."""
