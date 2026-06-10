@@ -216,15 +216,17 @@ def read_local_file(path: str) -> str:
 @mcp.tool()
 def write_local_file(path: str, content: str) -> str:
     """
-    Write content to a local file. Creates parent directories if needed.
+    Write (overwrite) content to a local file. Creates parent directories if needed.
+    To append to an existing file, read it first with read_local_file, then write
+    the combined content.
 
     Args:
         path: File path to write to
-        content: Content to write
+        content: Content to write (overwrites existing content)
     """
     try:
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
-        with open(path, "a", encoding="utf-8") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(content)
         return f"✅ Written to {path} ({len(content)} chars)"
     except Exception as e:

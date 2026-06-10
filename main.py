@@ -31,7 +31,7 @@ load_dotenv()
 from agent.graph import build_agent, run_agent, stream_agent
 from agent.memory import get_all_memories, delete_memories
 
-# ── Lifespan: build agent once at startup ─────────────────────────────────────
+# Lifespan: build agent once at startup
 _agent = None
 
 
@@ -47,11 +47,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="ReAct GitHub Agent", lifespan=lifespan)
 
+_cors_origins = os.getenv("CORS_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_cors_origins,
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 

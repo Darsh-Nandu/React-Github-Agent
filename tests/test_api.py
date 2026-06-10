@@ -154,7 +154,7 @@ class TestMemories:
         mock_del.assert_called_once_with(user_id="default-user")
 
 
-# (static UI)
+# /  (static UI)
 
 
 class TestServeUI:

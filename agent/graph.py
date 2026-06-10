@@ -57,10 +57,7 @@ def build_system_prompt(memories: list[str]) -> str:
     if not memories:
         return BASE_SYSTEM_PROMPT
     memory_block = "\n".join(f"- {m}" for m in memories)
-    return (
-        BASE_SYSTEM_PROMPT
-        + f"\n\n## Relevant memories from past sessions\n{memory_block}\n"
-    )
+    return BASE_SYSTEM_PROMPT + f"\n\n## Relevant memories from past sessions\n{memory_block}\n"
 
 
 # Agent Builder
@@ -150,9 +147,7 @@ async def run_agent(
 
     # 5. Save important facts to long-term memory (non-blocking)
     asyncio.create_task(
-        _maybe_save_memory(
-            user_id=user_id, user_msg=user_message, agent_msg=response_text
-        )
+        _maybe_save_memory(user_id=user_id, user_msg=user_message, agent_msg=response_text)
     )
 
     return response_text

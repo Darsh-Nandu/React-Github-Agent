@@ -27,10 +27,7 @@ try:
     if os.getenv("OPENAI_API_KEY"):
         _mem0_config = {
             "llm": {"provider": "openai", "config": {"model": "gpt-4o-mini"}},
-            "embedder": {
-                "provider": "openai",
-                "config": {"model": "text-embedding-3-small"},
-            },
+            "embedder": {"provider": "openai", "config": {"model": "text-embedding-3-small"}},
         }
 
     _mem0 = Mem0Memory.from_config(_mem0_config) if _mem0_config else Mem0Memory()
