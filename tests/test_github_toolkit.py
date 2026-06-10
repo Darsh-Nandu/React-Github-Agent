@@ -11,7 +11,9 @@ from unittest.mock import MagicMock, patch, PropertyMock
 # Helpers
 
 
-def _make_repo(full_name="owner/repo", description="A test repo", default_branch="main"):
+def _make_repo(
+    full_name="owner/repo", description="A test repo", default_branch="main"
+):
     repo = MagicMock()
     repo.full_name = full_name
     repo.description = description
@@ -131,7 +133,9 @@ class TestReadGithubFile:
         with patch("github_tools.github_toolkit._get_client") as mock_client:
             g = MagicMock()
             repo = MagicMock()
-            repo.get_contents.side_effect = GithubException(404, {"message": "Not Found"}, None)
+            repo.get_contents.side_effect = GithubException(
+                404, {"message": "Not Found"}, None
+            )
             g.get_repo.return_value = repo
             mock_client.return_value = g
 
@@ -170,7 +174,11 @@ class TestWriteGithubFile:
                 }
             )
 
-        assert "deadbeef" in result or "created" in result.lower() or "new_file.py" in result
+        assert (
+            "deadbeef" in result
+            or "created" in result.lower()
+            or "new_file.py" in result
+        )
 
     def test_updates_existing_file(self):
         from github_tools.github_toolkit import write_github_file
@@ -195,7 +203,11 @@ class TestWriteGithubFile:
                 }
             )
 
-        assert "cafebabe" in result or "updated" in result.lower() or "existing.py" in result
+        assert (
+            "cafebabe" in result
+            or "updated" in result.lower()
+            or "existing.py" in result
+        )
 
 
 # get_file_tree
@@ -219,7 +231,9 @@ class TestGetFileTree:
             g.get_repo.return_value = repo
             mock_client.return_value = g
 
-            result = get_file_tree.invoke({"repo": "owner/repo", "path": "", "branch": "main"})
+            result = get_file_tree.invoke(
+                {"repo": "owner/repo", "path": "", "branch": "main"}
+            )
 
         assert "README.md" in result
         assert "src" in result

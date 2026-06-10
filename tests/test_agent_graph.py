@@ -81,9 +81,10 @@ class TestBuildAgent:
             patch("agent.graph.MultiServerMCPClient") as MockClient,
             patch("agent.graph.get_github_tools", return_value=[MagicMock()]),
             patch("agent.graph.ChatGroq") as MockLLM,
-            patch("agent.graph.create_react_agent", return_value=MagicMock()) as mock_create,
+            patch(
+                "agent.graph.create_react_agent", return_value=MagicMock()
+            ) as mock_create,
         ):
-
             # Simulate MCP unavailable
             instance = AsyncMock()
             instance.get_tools.side_effect = ConnectionError("MCP down")
@@ -104,9 +105,10 @@ class TestBuildAgent:
             patch("agent.graph.MultiServerMCPClient") as MockClient,
             patch("agent.graph.get_github_tools", return_value=fake_github_tools),
             patch("agent.graph.ChatGroq"),
-            patch("agent.graph.create_react_agent", return_value=MagicMock()) as mock_create,
+            patch(
+                "agent.graph.create_react_agent", return_value=MagicMock()
+            ) as mock_create,
         ):
-
             instance = AsyncMock()
             instance.get_tools.side_effect = Exception("mcp down")
             MockClient.return_value = instance
@@ -114,7 +116,9 @@ class TestBuildAgent:
             await build_agent()
 
         # All tools passed to create_react_agent
-        called_tools = mock_create.call_args.kwargs.get("tools") or mock_create.call_args.args[1]
+        called_tools = (
+            mock_create.call_args.kwargs.get("tools") or mock_create.call_args.args[1]
+        )
         assert len(called_tools) >= len(fake_github_tools)
 
 
@@ -149,7 +153,9 @@ class TestRunAgent:
         from agent.graph import run_agent
 
         mock_agent = MagicMock()
-        mock_agent.ainvoke = AsyncMock(return_value={"messages": [MagicMock(content="response")]})
+        mock_agent.ainvoke = AsyncMock(
+            return_value={"messages": [MagicMock(content="response")]}
+        )
 
         captured = {}
 

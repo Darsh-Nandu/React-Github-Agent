@@ -75,7 +75,11 @@ class TestSaveMemoryWithMem0:
 
         mem_mod.save_memory(user_id="userA", content="Prefers dark mode")
 
-        mock_mem0.add.assert_called_once_with("Prefers dark mode", user_id="userA")
+        assert mock_mem0.add.called
+        call_args = mock_mem0.add.call_args
+        assert call_args.args[0] == "Prefers dark mode"
+        assert call_args.kwargs["user_id"] == "userA"
+        assert "metadata" in call_args.kwargs
 
         mem_mod.MEM0_AVAILABLE = original_available
         mem_mod._mem0 = original_mem0
