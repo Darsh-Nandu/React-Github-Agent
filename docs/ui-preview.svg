@@ -1,0 +1,86 @@
+<svg width="100%" viewBox="0 0 680 520" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>GitHub Agent UI preview</title>
+<defs>
+  <clipPath id="screen"><rect x="0" y="0" width="680" height="520" rx="10"/></clipPath>
+</defs>
+
+<rect x="0" y="0" width="680" height="520" rx="10" fill="#0d0f12"/>
+
+<rect x="0" y="0" width="680" height="44" fill="#141720"/>
+<rect x="0" y="43" width="680" height="1" fill="#2a2f3f"/>
+<text x="18" y="27" font-family="ui-monospace,monospace" font-size="14" font-weight="700" fill="#3dd68c">gh</text>
+<text x="36" y="27" font-family="ui-monospace,monospace" font-size="14" font-weight="400" fill="#4a5068">agent</text>
+<rect x="80" y="12" width="140" height="20" rx="4" fill="#1c2030" stroke="#2a2f3f" stroke-width="0.5"/>
+<text x="88" y="26" font-family="ui-monospace,monospace" font-size="10" fill="#4a5068">repo:</text>
+<text x="115" y="26" font-family="ui-monospace,monospace" font-size="10" fill="#8892a4">Darsh-Nandu/myapp</text>
+<rect x="228" y="12" width="64" height="20" rx="4" fill="#1c2030" stroke="#2a2f3f" stroke-width="0.5"/>
+<text x="236" y="26" font-family="ui-monospace,monospace" font-size="10" fill="#4a5068">branch:</text>
+<text x="276" y="26" font-family="ui-monospace,monospace" font-size="10" fill="#8892a4">main</text>
+<circle cx="600" cy="22" r="4" fill="#3dd68c"/>
+<text x="608" y="27" font-family="ui-monospace,monospace" font-size="10" fill="#8892a4">agent ready</text>
+<text x="560" y="27" font-family="ui-monospace,monospace" font-size="10" fill="#4a5068">darsh</text>
+
+<rect x="0" y="44" width="220" height="476" fill="#141720"/>
+<rect x="219" y="44" width="1" height="476" fill="#2a2f3f"/>
+
+<text x="16" y="68" font-family="ui-monospace,monospace" font-size="9" fill="#4a5068" letter-spacing="1">SESSIONS</text>
+<rect x="8" y="76" width="204" height="28" rx="5" fill="none" stroke="#2a2f3f" stroke-width="0.5" stroke-dasharray="3 2"/>
+<text x="24" y="95" font-family="ui-monospace,monospace" font-size="11" fill="#3dd68c">+</text>
+<text x="36" y="95" font-family="ui-monospace,monospace" font-size="11" fill="#8892a4"> new session</text>
+
+<rect x="8" y="112" width="204" height="40" rx="5" fill="#1c2030"/>
+<text x="18" y="130" font-family="ui-monospace,monospace" font-size="11" fill="#3dd68c">Session 3</text>
+<text x="18" y="144" font-family="ui-monospace,monospace" font-size="9" fill="#4a5068">June 11, 2025</text>
+<rect x="8" y="158" width="204" height="40" rx="5" fill="none"/>
+<text x="18" y="176" font-family="ui-monospace,monospace" font-size="11" fill="#8892a4">Session 2</text>
+<text x="18" y="190" font-family="ui-monospace,monospace" font-size="9" fill="#4a5068">June 10, 2025</text>
+<rect x="8" y="204" width="204" height="40" rx="5" fill="none"/>
+<text x="18" y="222" font-family="ui-monospace,monospace" font-size="11" fill="#8892a4">Session 1</text>
+<text x="18" y="236" font-family="ui-monospace,monospace" font-size="9" fill="#4a5068">June 9, 2025</text>
+
+<rect x="0" y="270" width="220" height="1" fill="#2a2f3f"/>
+<text x="16" y="290" font-family="ui-monospace,monospace" font-size="9" fill="#4a5068" letter-spacing="1">LONG-TERM MEMORY</text>
+<rect x="8" y="298" width="2" height="28" fill="#3dd68c"/>
+<text x="18" y="314" font-family="ui-monospace,monospace" font-size="10" fill="#8892a4">Prefers Python 3.11</text>
+<rect x="8" y="332" width="2" height="28" fill="#3dd68c"/>
+<text x="18" y="348" font-family="ui-monospace,monospace" font-size="10" fill="#8892a4">Works on myapp repo</text>
+<rect x="8" y="366" width="2" height="28" fill="#3dd68c"/>
+<text x="18" y="382" font-family="ui-monospace,monospace" font-size="10" fill="#8892a4">Uses main branch</text>
+<rect x="8" y="456" width="204" height="26" rx="4" fill="none" stroke="#2a2f3f" stroke-width="0.5"/>
+<text x="110" y="473" font-family="ui-monospace,monospace" font-size="11" fill="#8892a4" text-anchor="middle">clear memory</text>
+
+<rect x="220" y="44" width="460" height="476" fill="#0d0f12"/>
+
+<text x="330" y="148" font-family="ui-monospace,monospace" font-size="9" fill="#4a5068" letter-spacing="1">YOU</text>
+<rect x="322" y="154" width="320" height="32" rx="6" fill="#1c2030" stroke="#2a2f3f" stroke-width="0.5"/>
+<text x="334" y="175" font-family="ui-monospace,monospace" font-size="11" fill="#c8d0e0">List all open issues in my repo</text>
+
+<text x="330" y="204" font-family="ui-monospace,monospace" font-size="9" fill="#4a5068" letter-spacing="1">AGENT</text>
+<rect x="322" y="210" width="320" height="36" rx="6" fill="#1a1f2e" stroke="#2a2f3f" stroke-width="0.5"/>
+<text x="334" y="232" font-family="ui-monospace,monospace" font-size="11" fill="#f0a050">⚙</text>
+<text x="350" y="232" font-family="ui-monospace,monospace" font-size="11" fill="#f0a050">list_issues</text>
+<text x="580" y="232" font-family="ui-monospace,monospace" font-size="10" fill="#3dd68c" text-anchor="end">✓ done</text>
+<text x="590" y="232" font-family="ui-monospace,monospace" font-size="10" fill="#4a5068">▶</text>
+
+<text x="322" y="272" font-family="ui-monospace,monospace" font-size="11" fill="#c8d0e0">Found </text>
+<text x="362" y="272" font-family="ui-monospace,monospace" font-size="11" font-weight="700" fill="#6eb3f7">3 open issues</text>
+<text x="452" y="272" font-family="ui-monospace,monospace" font-size="11" fill="#c8d0e0"> in myapp:</text>
+<text x="330" y="294" font-family="ui-monospace,monospace" font-size="11" fill="#3dd68c">▸</text>
+<text x="344" y="294" font-family="ui-monospace,monospace" font-size="11" fill="#c8d0e0">#12 — Fix auth token expiry bug</text>
+<text x="330" y="314" font-family="ui-monospace,monospace" font-size="11" fill="#3dd68c">▸</text>
+<text x="344" y="314" font-family="ui-monospace,monospace" font-size="11" fill="#c8d0e0">#9  — Add pagination to /users</text>
+<text x="330" y="334" font-family="ui-monospace,monospace" font-size="11" fill="#3dd68c">▸</text>
+<text x="344" y="334" font-family="ui-monospace,monospace" font-size="11" fill="#c8d0e0">#7  — Update README with setup</text>
+<text x="322" y="362" font-family="ui-monospace,monospace" font-size="11" fill="#8892a4">Want me to prioritise or assign any of these?</text>
+
+<rect x="220" y="430" width="460" height="1" fill="#2a2f3f"/>
+<rect x="220" y="430" width="460" height="90" fill="#0d0f12"/>
+<rect x="232" y="442" width="368" height="38" rx="6" fill="#141720" stroke="#2a2f3f" stroke-width="0.5"/>
+<text x="244" y="466" font-family="ui-monospace,monospace" font-size="11" fill="#4a5068">Ask the agent anything about your repos…</text>
+<rect x="608" y="442" width="38" height="38" rx="6" fill="#3dd68c"/>
+<text x="627" y="466" font-family="ui-monospace,monospace" font-size="14" fill="#0d1117" text-anchor="middle">&#10148;</text>
+<text x="244" y="490" font-family="ui-monospace,monospace" font-size="10" fill="#4a5068">Enter to send  ·  Shift+Enter for newline</text>
+
+<rect x="0" y="0" width="680" height="10" fill="#141720" rx="10"/>
+<rect x="0" y="5" width="680" height="5" fill="#141720"/>
+</svg>
