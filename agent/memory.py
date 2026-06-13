@@ -13,18 +13,12 @@ import os
 import time
 from difflib import SequenceMatcher
 
-# Short-term memory (SqliteSaver persists sessions across restarts)
-try:
-    from langgraph.checkpoint.sqlite import SqliteSaver
+# Short-term memory
 
-    _DB_PATH = os.getenv("SQLITE_DB_PATH", "agent_memory.db")
-    short_term_memory = SqliteSaver.from_conn_string(_DB_PATH)
-    print(f"[memory] SqliteSaver active at {_DB_PATH}")
-except Exception as e:
-    print(f"[memory] SqliteSaver unavailable ({e}), falling back to MemorySaver")
-    from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import MemorySaver
 
-    short_term_memory = MemorySaver()
+def get_short_term_memory():
+    return MemorySaver()
 
 
 # Long-term memory using Mem0

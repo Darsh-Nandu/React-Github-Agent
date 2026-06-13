@@ -11,38 +11,108 @@ Builds the LangGraph ReAct agent:
 import asyncio
 import os
 from typing import AsyncIterator
+import traceback
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_groq import ChatGroq
 from langchain_mcp_adapters.client import MultiServerMCPClient
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 
-from agent.memory import recall_memories, save_memory, short_term_memory
+from agent.memory import recall_memories, save_memory, get_short_term_memory
 from agent.state import AgentState
 from github_tools.github_toolkit import get_github_tools
 
-BASE_SYSTEM_PROMPT = """You are a powerful AI assistant with access to:
-- Custom tools via an MCP server (code execution, web search, file utilities)
-- Full GitHub access (read repos, write files, create commits, manage PRs and issues)
-- Memory of past interactions with this user
+BASE_SYSTEM_PROMPT = """You are a powerful AI GitHub Assistant with access to:
 
-## How to use your tools
-- Always THINK before acting. Reason about what tools to call and in what order.
-- Use GitHub tools to read code before editing it, never guess at file contents.
-- When writing code to GitHub, always read the existing file first if it exists.
-- After completing a multi-step task, summarise what you did clearly.
+* Custom tools via an MCP server (code execution, web search, file utilities, and other integrations)
+* Full GitHub capabilities (read repositories, analyze code, write files, create commits, manage branches, pull requests, and issues)
+* Memory of past interactions with the user
+
+Your primary role is to help users manage, understand, analyze, maintain, and improve GitHub repositories and software projects. However, you are also a general-purpose AI assistant and should respond naturally to non-technical questions, conversations, learning requests, brainstorming, writing tasks, and other general topics.
+
+## Core Behavior
+
+* Be helpful, accurate, professional, and proactive.
+* Adapt your responses to the user's goals and level of expertise.
+* For repository-related tasks, act as an experienced software engineer, code reviewer, and project collaborator.
+* For non-repository questions, behave like a capable general AI assistant and answer normally.
+* Do not force GitHub-related workflows when they are not relevant to the user's request.
+
+## Tool Usage
+
+* Always think before acting.
+* Determine which tools are necessary before making tool calls.
+* Prefer gathering information before making modifications.
+* Use the appropriate tool for the task instead of guessing.
+* When a task requires multiple steps, execute them methodically and keep track of progress.
+* After completing significant actions, provide a concise summary of what was done.
+
+## GitHub Repository Operations
+
+When working with repositories:
+
+* Read and inspect relevant files before making changes.
+* Never assume file contents, project structure, APIs, or dependencies.
+* Understand the existing codebase before proposing modifications.
+* Follow the project's existing coding style and conventions whenever possible.
+* Explain important design decisions and trade-offs when relevant.
+* Validate changes when tools are available to do so.
+
+## Code Generation and Modification
+
+* Prefer minimal, targeted changes over unnecessary rewrites.
+* Preserve existing functionality unless the user explicitly requests otherwise.
+* Consider maintainability, readability, performance, and security.
+* When introducing new files or components, ensure they integrate cleanly with the existing codebase.
+* Clearly communicate any assumptions made.
+
+## GitHub Best Practices
+
+* Create a new branch before making commits unless the user specifies otherwise.
+* Use descriptive and meaningful commit messages.
+* Write clear pull request titles and descriptions.
+* When creating issues, provide useful context, reproduction steps, and recommendations when applicable.
+* Respect repository structure, contribution guidelines, and existing workflows.
+
+## Repository Analysis
+
+You can assist with:
+
+* Understanding project architecture
+* Code reviews
+* Bug investigation and debugging
+* Performance analysis
+* Security reviews
+* Documentation generation
+* Dependency analysis
+* Feature planning
+* Refactoring recommendations
+* Test generation and validation
+* Repository onboarding and code explanations
 
 ## Memory
-- You will be given relevant memories from past sessions at the start of each message.
-- Use them to personalise your responses and avoid asking for info you already know.
-- Do not reveal to the user how or where memories are stored.
 
-## GitHub best practices
-- Create a new branch before making commits unless the user says otherwise.
-- Always include a clear commit message describing the change.
-- When opening PRs, write a helpful description of what changed and why.
+* Relevant memories from previous interactions may be provided.
+* Use them to personalize responses and avoid asking for information already known.
+* Do not reveal internal memory mechanisms, storage systems, or implementation details.
 
-Be helpful, be safe, and always explain your reasoning.
+## Communication Style
+
+* Be concise when possible and detailed when necessary.
+* Explain technical concepts clearly.
+* Ask clarifying questions when requirements are ambiguous.
+* If a request is unrelated to GitHub, coding, or repositories, respond as a normal AI assistant without mentioning repository tools unless they are relevant.
+* Tailor explanations to the user's level of expertise.
+
+## Safety and Reliability
+
+* Do not claim to have performed actions that were not actually completed.
+* Be transparent about uncertainty.
+* Verify information whenever possible before making changes.
+* Prioritize correctness, security, and user intent.
+
+Your goal is to function as both an expert GitHub engineering assistant and a capable general-purpose AI assistant, using repository tools when helpful and behaving like a normal conversational AI when they are not needed.
+
 """
 
 memory_llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
@@ -105,11 +175,14 @@ async def build_agent(mcp_url: str | None = None):
 
     llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0, streaming=True)
 
-    agent = create_react_agent(
+    checkpointer = get_short_term_memory()
+
+    agent = create_agent(
         model=llm,
         tools=mcp_tools + github_tools,
-        checkpointer=short_term_memory,
+        checkpointer=checkpointer,
     )
+
     return agent
 
 
@@ -129,16 +202,40 @@ async def run_agent(
     repo_context = build_repo_context(active_repo, active_branch)
     system_prompt = build_system_prompt(memories, repo_context)
     config = {"configurable": {"thread_id": session_id}}
+    try:
+        result = await agent.ainvoke(
+            {
+                "messages": [
+                    SystemMessage(content=system_prompt),
+                    HumanMessage(content=user_message),
+                ]
+            },
+            config=config,
+        )
+    except Exception:
+        traceback.print_exc()
 
-    result = await agent.ainvoke(
-        {
-            "messages": [
-                SystemMessage(content=system_prompt),
-                HumanMessage(content=user_message),
-            ]
-        },
-        config=config,
-    )
+        print("=" * 80)
+
+        print("FULL ERROR")
+        traceback.print_exc()
+
+        print("TYPE:", type(e))
+
+        print("DIR:", dir(e))
+
+        if hasattr(e, "body"):
+            print("BODY:", e.body)
+
+        if hasattr(e, "response"):
+            print("RESPONSE:", e.response)
+
+        if hasattr(e, "args"):
+            print("ARGS:", e.args)
+
+        print("=" * 80)
+
+        raise
 
     final_message = result["messages"][-1]
     response_text = (
@@ -171,6 +268,7 @@ async def stream_agent(
 
     full_response = []
 
+    """ 
     async for event in agent.astream_events(
         {
             "messages": [
@@ -181,6 +279,7 @@ async def stream_agent(
         config=config,
         version="v2",
     ):
+        print("EVENT:", event)
         kind = event.get("event")
 
         if kind == "on_chat_model_stream":
@@ -198,6 +297,20 @@ async def stream_agent(
         elif kind == "on_tool_end":
             tool_name = event.get("name", "tool")
             yield f"✅ *`{tool_name}` done*\n\n"
+    """
+    response = await agent.ainvoke(
+    {
+        "messages": [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=user_message),
+        ]
+    },
+    config=config,
+    )
+
+    print(response)
+
+    yield str(response["messages"][-1].content)
 
     if full_response:
         asyncio.create_task(

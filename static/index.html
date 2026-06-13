@@ -284,7 +284,7 @@
 </div>
 
 <script>
-const API = '';
+const API = 'http://localhost:8000';
 
 // Auth state
 let authToken = localStorage.getItem('gh-agent-token') || null;
@@ -355,14 +355,14 @@ function showApp() {
   loadMemories();
 }
 
+// Sessions
+let sessions = JSON.parse(localStorage.getItem('gh-agent-sessions') || '[]');
+let activeSession = null;
+
 // Auto-login if token exists
 if (authToken) {
   showApp();
 }
-
-// Sessions
-let sessions = JSON.parse(localStorage.getItem('gh-agent-sessions') || '[]');
-let activeSession = null;
 
 function newSession() {
   const id = crypto.randomUUID();
@@ -558,33 +558,47 @@ async function sendMessage() {
         active_branch: activeBranch,
       }),
     });
-
     const reader = resp.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
-
+    
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
+      
+      const rawMessages = buffer.split(/\r?\n\r?\n/);
 
-      const rawMessages = buffer.split('\n\n');
-      buffer = rawMessages.pop();
+      buffer = rawMessages.pop() || '';
 
       for (const msg of rawMessages) {
-        if (!msg.trim()) continue;
-        let eventType = 'token';
-        let eventData = '';
-        for (const line of msg.split('\n')) {
-          if (line.startsWith('event: ')) eventType = line.slice(7).trim();
-          else if (line.startsWith('data: ')) eventData = line.slice(6);
-        }
-        if (eventType === 'done' || !eventData) continue;
-        try {
-          assistantMsg.content += eventData;
-          activeBubble.innerHTML = formatContent(assistantMsg.content);
-          scrollToBottom();
-        } catch {}
+          if (!msg.trim()) continue;
+
+          let eventType = '';
+          let eventData = '';
+
+          for (const line of msg.split(/\r?\n/)) {
+              if (line.startsWith('event:')) {
+                  eventType = line.substring(6).trim();
+              }
+
+              if (line.startsWith('data:')) {
+                  eventData += line.substring(5).trim();
+              }
+          }
+
+          console.log('PARSED:', eventType, eventData);
+
+          if (eventType === 'token') {
+              assistantMsg.content += eventData;
+              activeBubble.innerHTML = formatContent(
+                  assistantMsg.content
+              );
+          }
+
+          if (eventType === 'done') {
+              console.log('STREAM COMPLETE');
+          }
       }
     }
   } catch (e) {
